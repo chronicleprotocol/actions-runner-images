@@ -11,4 +11,5 @@ RUN sudo apt update -y && \
     jq \
     tar \
     unzip \
-    wget
+    wget \
+    git
