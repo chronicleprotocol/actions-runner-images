@@ -16,7 +16,7 @@ on:
       - main
 jobs:
   build-and-push:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         app: [ubuntu]
