@@ -14,60 +14,17 @@ on:
       - main
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         app: [ubuntu]
-    # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
     permissions:
+      contents: read
       id-token: write
       packages: write
-      contents: read
-
-    steps:
-      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5
-
-      - name: Login to Github Packages
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker metadata (tags, labels, etc)
-        id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051
-        with:
-          images: ghcr.io/chronicleprotocol/actions-runner-${{ matrix.app }}
-          tags: |
-            type=raw,value=latest
-            type=ref,event=branch
-            type=ref,event=pr
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
-        with:
-          platforms: all
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
-        id: buildx
-        with:
-          install: true
-
-      - name: Docker build and Push images
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25
-        with:
-          context: ${{ matrix.app }}
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
+    uses: chronicleprotocol/actions-workflows/.github/workflows/docker-build-and-publish.yaml@main
+    with:
+      application: actions-runner-${{ matrix.app }}
+      context: ${{ matrix.app }}
+      dockerfile: ${{ matrix.app }}/Dockerfile
+      tag_latest: true
+      tag_ref: true
